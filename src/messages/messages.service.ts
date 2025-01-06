@@ -13,23 +13,22 @@ import { checkOption } from './helpers/message.helper';
 export class MessagesService {
 	@InjectRepository(PresetMessage) private presetRepository: Repository<PresetMessage>;
 	@InjectRepository(Message) private messageRepository: Repository<Message>;
-
-	private dataSubject = new Subject<any>();
+	private dataSubject = new Subject<Message>();
 
 	getDataStream = () => this.dataSubject.asObservable();
-
-	getPreset = async (id: number) => {
-		return this.presetRepository.findOneOrFail({ where: { id } });
-	};
+	getPreset = async (id: number) => this.presetRepository.findOneOrFail({ where: { id } });
 
 	addMessageToChat = async (body: AddMessageDto) => {
-		const { chatId, optionSelectedId, presetMessageId, isRoot, isTerminal } = body;
+		const { isRoot, isTerminal } = body;
 
-		if (isRoot || isTerminal) {
-			const message = await this.addSpecialMessage(body);
-			this.dataSubject.next({ message });
-			return;
-		}
+		const message =
+			isRoot || isTerminal ? await this.addSpecialMessage(body) : await this.addUserMessage(body);
+
+		this.dataSubject.next(message);
+	};
+
+	private addUserMessage = async (body: AddMessageDto) => {
+		const { presetMessageId, optionSelectedId, chatId } = body;
 
 		const presetMessage = await this.presetRepository.findOneOrFail({
 			where: { id: presetMessageId },
@@ -37,8 +36,12 @@ export class MessagesService {
 		});
 
 		checkOption(presetMessage, optionSelectedId);
-		const preset = await this.presetRepository.findOneByOrFail({ id: optionSelectedId });
-		this.dataSubject.next({ message: preset });
+		const responseMessage = await this.presetRepository.findOneByOrFail({ id: optionSelectedId });
+
+		return await this.create({
+			chatId,
+			presetMessage: responseMessage,
+		});
 	};
 
 	private addSpecialMessage = async (body: AddMessageDto) => {
@@ -48,14 +51,28 @@ export class MessagesService {
 			type: isRoot ? PresetMessageTree.ROOT : PresetMessageTree.TERMINAL,
 		});
 
-		const newMessage = this.messageRepository.create({
-			chatId: chatId,
+		return this.create({
+			chatId,
 			presetMessage,
 			source: SourceMessage.SERVER,
-			internalId: uuid(),
+		});
+	};
+
+	private create = (data: {
+		chatId: number;
+		presetMessage: PresetMessage;
+		source?: SourceMessage;
+		internalId?: string;
+	}) => {
+		const { chatId, presetMessage, source, internalId } = data;
+
+		const message = this.messageRepository.create({
+			chatId,
+			presetMessage,
+			source: source || SourceMessage.CLIENT,
+			internalId: internalId || uuid(),
 		});
 
-		return this.messageRepository.save(newMessage);
+		return this.messageRepository.save(message);
 	};
 }
-
