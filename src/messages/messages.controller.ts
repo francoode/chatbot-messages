@@ -34,6 +34,8 @@ export class MessagesController {
 			isRoot: true,
 		};
 
+    console.log('entro aca? message');
+
 		await this.messagesService.addMessageToChat(rootData);
 	}
 
