@@ -1,75 +1,61 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ChatsService } from 'src/chats/chats.service';
-import { AddMessage, SourceMessage } from 'src/types/chat.types';
-import { Message } from './entities/message.model';
-import { Repository } from 'typeorm';
-import {
-  PresetMessage,
-  PresetMessageTree,
-} from './entities/preset-message.model';
-import { Chat } from 'src/chats/entities/chat.model';
 import { Subject } from 'rxjs';
+import { Repository } from 'typeorm';
 import { v4 as uuid } from 'uuid';
+import { AddMessageDto } from './dtos/message.dto';
+import { Message } from './entities/message.model';
+import { PresetMessage, PresetMessageTree } from './entities/preset-message.model';
+import { SourceMessage } from './types/messages.types';
+import { checkOption } from './helpers/message.helper';
 
 @Injectable()
 export class MessagesService {
-  @Inject() chatService: ChatsService;
-  @InjectRepository(PresetMessage)
-  private presetRepository: Repository<PresetMessage>;
-  @InjectRepository(Message)
-  private messageRepository: Repository<Message>;
+	@InjectRepository(PresetMessage) private presetRepository: Repository<PresetMessage>;
+	@InjectRepository(Message) private messageRepository: Repository<Message>;
 
-  private dataSubject = new Subject<any>();
+	private dataSubject = new Subject<any>();
 
-  getDataStream() {
-    return this.dataSubject.asObservable();
-  }
+	getDataStream = () => this.dataSubject.asObservable();
 
-  getPreset = async(id: number) => {
-    console.log(id);
-    return this.presetRepository.findOneOrFail({ where: { id } });
-  }
+	getPreset = async (id: number) => {
+		return this.presetRepository.findOneOrFail({ where: { id } });
+	};
 
-  addMessageToChat = async (body: AddMessage) => {
-    const { chatId, optionSelectedId, presetMessageId } = body;
-    const chat = await this.chatService.getByIdOrFail(chatId);
+	addMessageToChat = async (body: AddMessageDto) => {
+		const { chatId, optionSelectedId, presetMessageId, isRoot, isTerminal } = body;
 
-    //caso de root message
-    //caso de mensage terminal
+		if (isRoot || isTerminal) {
+			const message = await this.addSpecialMessage(body);
+			this.dataSubject.next({ message });
+			return;
+		}
 
-    const presetMessage = await this.presetRepository.findOneOrFail({
-      where: { id: presetMessageId },
-      relations: ['options'],
-    });
+		const presetMessage = await this.presetRepository.findOneOrFail({
+			where: { id: presetMessageId },
+			relations: ['options'],
+		});
 
-    const msgResponse = presetMessage.options.find(
-      (opt) => Number(opt) === Number(optionSelectedId),
-    );
+		checkOption(presetMessage, optionSelectedId);
+		const preset = await this.presetRepository.findOneByOrFail({ id: optionSelectedId });
+		this.dataSubject.next({ message: preset });
+	};
 
-    if (!msgResponse) throw new NotFoundException('Invalid option');
+	private addSpecialMessage = async (body: AddMessageDto) => {
+		const { chatId, isRoot } = body;
 
-    const preset = this.presetRepository.findOneByOrFail({ id: msgResponse.id });
+		const presetMessage = await this.presetRepository.findOneByOrFail({
+			type: isRoot ? PresetMessageTree.ROOT : PresetMessageTree.TERMINAL,
+		});
 
-    this.dataSubject.next({message: preset});
-  };
+		const newMessage = this.messageRepository.create({
+			chatId: chatId,
+			presetMessage,
+			source: SourceMessage.SERVER,
+			internalId: uuid(),
+		});
 
-  createRootMessage = async (body: Chat) => {
-    const { id, userId } = body;
-    const rootMessage = await this.presetRepository.findOneByOrFail({
-      type: PresetMessageTree.ROOT,
-    });
-    if (!rootMessage) throw new NotFoundException();
-
-    const newMessage = this.messageRepository.create({
-      chat: body,
-      presetMessage: rootMessage,
-      userId,
-      source: SourceMessage.SERVER,
-      internalId: uuid()
-    });
-    
-    await this.messageRepository.save(newMessage);
-
-  };
+		return this.messageRepository.save(newMessage);
+	};
 }
+

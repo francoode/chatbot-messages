@@ -8,8 +8,7 @@ import {
   ManyToOne,
 } from 'typeorm';
 import { PresetMessage } from './preset-message.model';
-import { Chat } from 'src/chats/entities/chat.model';
-import { SourceMessage } from 'src/types/chat.types';
+import { SourceMessage } from '../types/messages.types';
 
 @Entity()
 export class Message {
@@ -17,16 +16,13 @@ export class Message {
   id: number;
 
   @Column({ nullable: false })
-  userId: number;
-
-  @Column({ nullable: false })
   source: SourceMessage;
 
   @Column({ nullable: false })
   internalId: string;
 
-  @ManyToOne(() => Chat, (chat) => chat.messages)
-  chat: Chat;
+  @Column({ nullable: false })
+  chatId: number;
 
   @ManyToOne(() => PresetMessage, { eager: true })
   presetMessage: PresetMessage;

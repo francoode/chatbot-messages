@@ -1,6 +1,7 @@
 import { Exclude, Type } from "class-transformer";
 import { Message } from "../entities/message.model";
 import { PresetMessageSerializer } from "./preset-message.dto";
+import { IsNotEmpty, IsNumber } from "class-validator";
 
 export class MessageSerializer {
     @Type(() => PresetMessageSerializer)
@@ -26,4 +27,7 @@ export class AddMessageDto {
   @IsNotEmpty()
   @IsNumber()
   presetMessageId: number;
+
+  isRoot? = false;
+  isTerminal? = false;
 }
