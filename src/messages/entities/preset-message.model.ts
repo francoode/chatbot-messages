@@ -1,56 +1,59 @@
 import {
-  Entity,
-  PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
-  UpdateDateColumn,
-  BeforeInsert,
-  BeforeUpdate,
-  OneToOne,
-  ManyToMany,
-  JoinTable,
-  OneToMany,
+  Entity,
+  JoinColumn,
   ManyToOne,
+  OneToMany,
+  OneToOne,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn
 } from 'typeorm';
-import { PresetMessageOption } from './preset-options.model';
 import { Message } from './message.model';
 
 export enum PresetMessageTree {
-  ROOT = 'ROOT', //raiz
-  TERMINAL = 'TERMINAL', //nodo terminal
-  LEAVES = 'LEAVES', //hojas
+	ROOT = 'ROOT', //raiz
+	TERMINAL = 'TERMINAL', //nodo terminal
+	LEAVES = 'LEAVES', //respuesta
+	OPTION = 'OPTION',
 }
-
 @Entity()
 export class PresetMessage {
-  @PrimaryGeneratedColumn()
-  id: number;
+	@PrimaryGeneratedColumn()
+	id: number;
 
-  @Column({ nullable: false })
-  text: string;
+	@Column({ nullable: false })
+	text: string;
 
-  @Column({
-    nullable: false,
-    type: 'enum',
-    enum: PresetMessageTree,
-    default: PresetMessageTree.LEAVES,
-  })
-  type: PresetMessageTree;
+	@Column({
+		nullable: false,
+		type: 'enum',
+		enum: PresetMessageTree,
+		default: PresetMessageTree.LEAVES,
+	})
+	type: PresetMessageTree;
 
-  @ManyToOne(() => PresetMessage, (mensaje) => mensaje.id)
-  parentMessage: PresetMessage;
+	//Mensaje anterior
+	@ManyToOne(() => PresetMessage, (mensaje) => mensaje.id)
+	parentMessage: PresetMessage;
 
-  @OneToMany(() => Message, (message) => message.presetMessage)
-  messages: Message[];
+	//Opciones dentro del mensaje.
+	@ManyToOne(() => PresetMessage, (message) => message.options)
+	optionOf: PresetMessage;
+	@OneToMany(() => PresetMessage, (message) => message.optionOf)
+	options: PresetMessage[];
 
-  @OneToMany(() => PresetMessageOption, (option) => option.optionMessage, {
-    cascade: true, // Propaga operaciones de persistencia
-  })
-  options: PresetMessageOption[];
+	//Respuesta a opcion
+	@OneToOne(() => PresetMessage)
+	@JoinColumn()
+	responseOf: PresetMessage;
 
-  @CreateDateColumn()
-  createdAt: Date;
+	@OneToOne(() => PresetMessage, (message) => message.responseOf)
+	answerMessage: PresetMessage;
 
-  @UpdateDateColumn()
-  updatedAt: Date;
+	@CreateDateColumn()
+	createdAt: Date;
+
+	@UpdateDateColumn()
+	updatedAt: Date;
 }

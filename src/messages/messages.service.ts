@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Subject } from 'rxjs';
 import { Repository } from 'typeorm';
 import { v4 as uuid } from 'uuid';
-import { AddMessageDto } from './dtos/message.dto';
+import { AddMessageDto, MessageSerializer } from './dtos/message.dto';
 import { Message } from './entities/message.model';
 import { PresetMessage, PresetMessageTree } from './entities/preset-message.model';
 import { SourceMessage } from './types/messages.types';
@@ -16,11 +16,25 @@ export class MessagesService {
 	private dataSubject = new Subject<Message>();
 
 	getDataStream = () => this.dataSubject.asObservable();
-	getPreset = async (id: number) => this.presetRepository.findOneOrFail({ where: { id } });
+	getPreset = async (id: number) => {
+		return this.presetRepository.findOneOrFail({
+			where: { id },
+			relations: ['options', 'answerMessage'],
+		});
+	};
+
+	getChatMessages = async (id: number): Promise<MessageSerializer[]> => {
+		//@todo paginar y ordenar.
+		const messages = await this.messageRepository.find({
+			where: { chatId: id },
+			relations: ['presetMessage', 'presetMessage.options', 'presetMessage.answerMessage'],
+		});
+
+		return messages.map((m) => new MessageSerializer(m));
+	};
 
 	addMessageToChat = async (body: AddMessageDto) => {
 		const { isRoot, isTerminal } = body;
-
 		const message =
 			isRoot || isTerminal ? await this.addSpecialMessage(body) : await this.addUserMessage(body);
 

@@ -1,16 +1,11 @@
 import { CHAT_CREATE_EVENT, ChatBot, MessagePattern } from '@chatbot/shared-lib';
-import {
-  Body,
-  Controller,
-  Get,
-  Param,
-  Post,
-  Sse
-} from '@nestjs/common';
+import { Body, ClassSerializerInterceptor, Controller, Get, Param, Post, Req, Sse, UseInterceptors } from '@nestjs/common';
 import { Observable, map } from 'rxjs';
-import { AddMessageDto } from './dtos/message.dto';
+import { AddMessageDto, MessageSerializer } from './dtos/message.dto';
 import { MessagesService } from './messages.service';
+import { PresetMessageSerializer } from './dtos/preset-message.dto';
 
+@UseInterceptors(ClassSerializerInterceptor)
 @Controller('messages')
 export class MessagesController {
 	constructor(private readonly messagesService: MessagesService) {}
@@ -21,22 +16,27 @@ export class MessagesController {
 	}
 
 	@Get('presets/:id')
-	async getPreset(@Param('id') id: number) {
-		return await this.messagesService.getPreset(id);
+	async getPreset(@Param('id') id: number): Promise<PresetMessageSerializer> {
+		const preset = await this.messagesService.getPreset(id);
+		return new PresetMessageSerializer(preset);
 	}
+
+	@Get('/chats/:chatId')
+	async getChatMessages(@Param('chatId') id: number, @Req() req): Promise<MessageSerializer[]> {
+		const messages = await this.messagesService.getChatMessages(id);
+		
+		return messages;
+	}
+
 
 	@MessagePattern(CHAT_CREATE_EVENT)
 	async chatCreate(data: ChatBot) {
-		const rootData: AddMessageDto = {
+		await this.messagesService.addMessageToChat({
 			chatId: data.id,
 			optionSelectedId: 0,
 			presetMessageId: 0,
 			isRoot: true,
-		};
-
-    console.log('entro aca? message');
-
-		await this.messagesService.addMessageToChat(rootData);
+		});
 	}
 
 	@Sse()
