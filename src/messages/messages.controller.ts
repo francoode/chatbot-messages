@@ -24,7 +24,6 @@ export class MessagesController {
 	@Get('/chats/:chatId')
 	async getChatMessages(@Param('chatId') id: number, @Req() req): Promise<MessageSerializer[]> {
 		const messages = await this.messagesService.getChatMessages(id);
-		
 		return messages;
 	}
 

@@ -38,18 +38,18 @@ export class PresetMessage {
 	parentMessage: PresetMessage;
 
 	//Opciones dentro del mensaje.
-	@ManyToOne(() => PresetMessage, (message) => message.options)
+/* 	@ManyToOne(() => PresetMessage, (message) => message.options)
 	optionOf: PresetMessage;
 	@OneToMany(() => PresetMessage, (message) => message.optionOf)
-	options: PresetMessage[];
+	options: PresetMessage[]; */
 
 	//Respuesta a opcion
-	@OneToOne(() => PresetMessage)
+/* 	@OneToOne(() => PresetMessage)
 	@JoinColumn()
 	responseOf: PresetMessage;
 
 	@OneToOne(() => PresetMessage, (message) => message.responseOf)
-	answerMessage: PresetMessage;
+	answerMessage: PresetMessage; */
 
 	@CreateDateColumn()
 	createdAt: Date;
