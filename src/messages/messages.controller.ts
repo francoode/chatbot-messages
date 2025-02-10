@@ -12,6 +12,7 @@ export class MessagesController {
 
 	@Post()
 	async add(@Body() body: AddMessageDto) {
+		return true;
 		await this.messagesService.addMessageToChat(body);
 	}
 

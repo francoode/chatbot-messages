@@ -5,8 +5,8 @@ export const checkOption = (
 	presetMessage: PresetMessage,
 	optionToCheck: number,
 ): boolean => {
-	const msgResponse = presetMessage.options.find((opt) => Number(opt) === Number(optionToCheck));
-	if (!msgResponse) throw new NotFoundException('Invalid option');
+	//const msgResponse = presetMessage.options.find((opt) => Number(opt) === Number(optionToCheck));
+	//if (!msgResponse) throw new NotFoundException('Invalid option');
 
 	return true;
 };
