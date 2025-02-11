@@ -4,4 +4,6 @@ COPY package*.json ./
 RUN npm install
 COPY . .
 EXPOSE 3000
-CMD ["npm", "run", "start:dev"]
+RUN chmod 777 dist
+RUN chmod +x entrypoint.sh  # Da permisos de ejecución al script
+ENTRYPOINT ["sh", "./entrypoint.sh"]

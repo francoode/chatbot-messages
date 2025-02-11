@@ -1,4 +1,4 @@
-import { PresetMessage, PresetMessageTree } from 'src/messages/entities/preset-message.model';
+import { PresetMessage, PresetMessageTree } from '../src/messages/entities/preset-message.model';
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
 export class Migrations1739230717601 implements MigrationInterface {

@@ -1,7 +1,7 @@
 import { INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { TestDataSource } from '../data-source';
+import { MessageDataSource } from '../data-source';
 import { AppModule } from 'src/app.module';
 import * as request from 'supertest';
 import { getConnection } from 'typeorm';
@@ -11,7 +11,7 @@ describe('POST /messages', () => {
 	let app: INestApplication;
 
 	beforeAll(async () => {
-		const dataSource = TestDataSource;
+		const dataSource = MessageDataSource;
 		if (!dataSource.isInitialized) {
 			await dataSource.initialize();
 		}
@@ -30,7 +30,7 @@ describe('POST /messages', () => {
 	});
 
 	afterAll(async () => {
-		const dataSource = TestDataSource;
+		const dataSource = MessageDataSource;
 		await app.close();
 		await dataSource.dropDatabase();
 	});
@@ -64,14 +64,15 @@ describe('POST /messages', () => {
 	it('Add leave message', async () => {
 		const body: AddMessageDto = {
 			chatId: 1,
-			optionSelectedId: 0,
-			presetMessageId: 0,
+			text: 'Hola desde el cliente',
 			isRoot: false,
 		};
 
 		const response = await request(app.getHttpServer()).post('/messages').send(body).expect(201);
 
 		expect(response.body).toHaveProperty('id');
+		expect(response.body.text).toEqual('Hola desde el cliente');
+		
 	});
 
 	it('Add message to invalid chat', async () => {

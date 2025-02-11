@@ -1,7 +1,7 @@
 import { Exclude, Type } from "class-transformer";
 import { Message } from "../entities/message.model";
 import { PresetMessageSerializer } from "./preset-message.dto";
-import { IsNotEmpty, IsNumber } from "class-validator";
+import { IsDefined, IsNotEmpty, IsNumber, IsString } from "class-validator";
 
 export class MessageSerializer {
     @Type(() => PresetMessageSerializer)
@@ -19,14 +19,18 @@ export class AddMessageDto {
   chatId: number;
 
   @Type(() => Number)
-  @IsNotEmpty()
+  //@IsNotEmpty()
   @IsNumber()
-  optionSelectedId: number;
+  optionSelectedId?: number;
 
   @Type(() => Number)
-  @IsNotEmpty()
+  //@IsNotEmpty()
   @IsNumber()
-  presetMessageId: number;
+  presetMessageId?: number;
+
+  @IsDefined()
+  @IsString()
+  text?: string;
 
   isRoot? = false;
   isTerminal? = false;

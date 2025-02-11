@@ -43,19 +43,20 @@ export class MessagesService {
 	};
 
 	private addUserMessage = async (body: AddMessageDto) => {
-		const { presetMessageId, optionSelectedId, chatId } = body;
+		const { presetMessageId, optionSelectedId, chatId, text } = body;
 
-		const presetMessage = await this.presetRepository.findOneOrFail({
+		/* const presetMessage = await this.presetRepository.findOneOrFail({
 			where: { id: presetMessageId },
 			relations: ['options'],
-		});
+		}); */
 
-		checkOption(presetMessage, optionSelectedId);
-		const responseMessage = await this.presetRepository.findOneByOrFail({ id: optionSelectedId });
+		//checkOption(presetMessage, optionSelectedId);
+		//const responseMessage = await this.presetRepository.findOneByOrFail({ id: optionSelectedId });
 
 		return await this.create({
 			chatId,
-			presetMessage: responseMessage,
+			text: text || 'Error user text'
+			//presetMessage: responseMessage,
 		});
 	};
 
