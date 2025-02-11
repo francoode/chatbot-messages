@@ -27,18 +27,19 @@ export class MessagesService {
 		//@todo paginar y ordenar.
 		const messages = await this.messageRepository.find({
 			where: { chatId: id },
-			relations: ['presetMessage', 'presetMessage.options', 'presetMessage.answerMessage'],
+			//relations: ['presetMessage', 'presetMessage.options', 'presetMessage.answerMessage'],
 		});
 
 		return messages.map((m) => new MessageSerializer(m));
 	};
 
-	addMessageToChat = async (body: AddMessageDto) => {
+	addMessageToChat = async (body: AddMessageDto): Promise<Message> => {
 		const { isRoot, isTerminal } = body;
 		const message =
 			isRoot || isTerminal ? await this.addSpecialMessage(body) : await this.addUserMessage(body);
 
 		this.dataSubject.next(message);
+		return message;
 	};
 
 	private addUserMessage = async (body: AddMessageDto) => {
@@ -74,18 +75,26 @@ export class MessagesService {
 
 	private create = (data: {
 		chatId: number;
-		presetMessage: PresetMessage;
+		text?: string;
+		presetMessage?: PresetMessage;
 		source?: SourceMessage;
 		internalId?: string;
 	}) => {
-		const { chatId, presetMessage, source, internalId } = data;
+		const { chatId, presetMessage, text, source, internalId } = data;
 
 		const message = this.messageRepository.create({
+			chatId,
+			text: presetMessage ? presetMessage.text : text,
+			source: source || SourceMessage.CLIENT,
+			internalId: internalId || uuid(),
+		});
+
+		/* const message = this.messageRepository.create({
 			chatId,
 			presetMessage,
 			source: source || SourceMessage.CLIENT,
 			internalId: internalId || uuid(),
-		});
+		}); */
 
 		return this.messageRepository.save(message);
 	};

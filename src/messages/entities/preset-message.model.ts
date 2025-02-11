@@ -27,15 +27,15 @@ export class PresetMessage {
 
 	@Column({
 		nullable: false,
-		type: 'enum',
-		enum: PresetMessageTree,
+		//type: 'enum',
+		//enum: PresetMessageTree,
 		default: PresetMessageTree.LEAVES,
 	})
 	type: PresetMessageTree;
 
 	//Mensaje anterior
-	@ManyToOne(() => PresetMessage, (mensaje) => mensaje.id)
-	parentMessage: PresetMessage;
+/* 	@ManyToOne(() => PresetMessage, (mensaje) => mensaje.id)
+	parentMessage: PresetMessage; */
 
 	//Opciones dentro del mensaje.
 /* 	@ManyToOne(() => PresetMessage, (message) => message.options)

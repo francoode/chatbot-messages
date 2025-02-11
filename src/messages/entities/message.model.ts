@@ -24,8 +24,11 @@ export class Message {
   @Column({ nullable: false })
   chatId: number;
 
-  @ManyToOne(() => PresetMessage, { eager: true })
-  presetMessage: PresetMessage;
+  @Column({ nullable: false})
+  text: string;
+
+/*   @ManyToOne(() => PresetMessage, { eager: true })
+  presetMessage: PresetMessage; */
 
   @CreateDateColumn()
   createdAt: Date;

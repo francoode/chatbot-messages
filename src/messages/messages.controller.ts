@@ -1,5 +1,15 @@
 import { CHAT_CREATE_EVENT, ChatBot, MessagePattern } from '@chatbot/shared-lib';
-import { Body, ClassSerializerInterceptor, Controller, Get, Param, Post, Req, Sse, UseInterceptors } from '@nestjs/common';
+import {
+	Body,
+	ClassSerializerInterceptor,
+	Controller,
+	Get,
+	Param,
+	Post,
+	Req,
+	Sse,
+	UseInterceptors,
+} from '@nestjs/common';
 import { Observable, map } from 'rxjs';
 import { AddMessageDto, MessageSerializer } from './dtos/message.dto';
 import { MessagesService } from './messages.service';
@@ -12,8 +22,7 @@ export class MessagesController {
 
 	@Post()
 	async add(@Body() body: AddMessageDto) {
-		return true;
-		await this.messagesService.addMessageToChat(body);
+		return await this.messagesService.addMessageToChat(body);
 	}
 
 	@Get('presets/:id')
@@ -27,7 +36,6 @@ export class MessagesController {
 		const messages = await this.messagesService.getChatMessages(id);
 		return messages;
 	}
-
 
 	@MessagePattern(CHAT_CREATE_EVENT)
 	async chatCreate(data: ChatBot) {
