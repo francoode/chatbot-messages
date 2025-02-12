@@ -32,7 +32,7 @@ export class MessagesController {
 
 	@Post()
 	async add(@Body() body: AddMessageDto) {
-		return await this.messagesService.addMessageToChat(body);
+		return await this.messagesService.addMessagesToChat(body);
 	}
 
 	@Get('presets/:id')
@@ -49,7 +49,7 @@ export class MessagesController {
 
 	@MessagePattern('CHAT_CREATE_EVENT')
 	async chatCreate(data: ChatBot) {
-		await this.messagesService.addMessageToChat({
+		await this.messagesService.addMessagesToChat({
 			chatId: data.id,
 			optionSelectedId: 0,
 			presetMessageId: 0,

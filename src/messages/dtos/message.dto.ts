@@ -24,7 +24,7 @@ export class AddMessageDto {
   optionSelectedId?: number;
 
   @Type(() => Number)
-  //@IsNotEmpty()
+  @IsNotEmpty()
   @IsNumber()
   presetMessageId?: number;
 

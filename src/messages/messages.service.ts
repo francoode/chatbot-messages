@@ -1,21 +1,28 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Subject } from 'rxjs';
 import { Repository } from 'typeorm';
 import { v4 as uuid } from 'uuid';
 import { AddMessageDto, MessageSerializer } from './dtos/message.dto';
 import { Message } from './entities/message.model';
-import { PresetMessage, PresetMessageTree } from './entities/preset-message.model';
+import {
+	PresetMessage,
+	PresetMessageTree,
+} from './entities/preset-message.model';
 import { SourceMessage } from './types/messages.types';
-import { checkOption } from './helpers/message.helper';
+import { MessageFactory } from './classes/message.factory';
 
 @Injectable()
 export class MessagesService {
-	@InjectRepository(PresetMessage) private presetRepository: Repository<PresetMessage>;
+	@InjectRepository(PresetMessage)
+	private presetRepository: Repository<PresetMessage>;
 	@InjectRepository(Message) private messageRepository: Repository<Message>;
 	private dataSubject = new Subject<Message>();
 
+	@Inject() messageFactory: MessageFactory;
+
 	getDataStream = () => this.dataSubject.asObservable();
+
 	getPreset = async (id: number) => {
 		return this.presetRepository.findOneOrFail({
 			where: { id },
@@ -33,13 +40,13 @@ export class MessagesService {
 		return messages.map((m) => new MessageSerializer(m));
 	};
 
-	addMessageToChat = async (body: AddMessageDto): Promise<Message> => {
-		const { isRoot, isTerminal } = body;
-		const message =
-			isRoot || isTerminal ? await this.addSpecialMessage(body) : await this.addUserMessage(body);
+	addMessagesToChat = async (body: AddMessageDto): Promise<Message[]> => {
+		const factory = this.messageFactory.getCreator(body);
+		return await factory.create();
+		
 
-		this.dataSubject.next(message);
-		return message;
+		//this.dataSubject.next(message);
+		
 	};
 
 	private addUserMessage = async (body: AddMessageDto) => {
@@ -55,7 +62,7 @@ export class MessagesService {
 
 		return await this.create({
 			chatId,
-			text: text || 'Error user text'
+			text: 'Mensaje de respuesta',
 			//presetMessage: responseMessage,
 		});
 	};
