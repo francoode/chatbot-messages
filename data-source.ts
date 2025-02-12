@@ -10,5 +10,5 @@ export const MessageDataSource = new DataSource({
 	database: path.join(__dirname, 'test.db'),
 	entities: [PresetMessage, Message],
 	synchronize: true,
-	//migrations: ['./migrations/*.ts'],
+	migrations: ['./dist/migrations/*.js'],
 });

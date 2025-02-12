@@ -1,6 +1,5 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { MESSAGE_QUEUE, MicroserviceOptions, Transport } from '@chatbot/shared-lib';
 import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {

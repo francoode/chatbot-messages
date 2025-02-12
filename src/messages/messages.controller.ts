@@ -1,4 +1,4 @@
-import { CHAT_CREATE_EVENT, ChatBot, MessagePattern } from '@chatbot/shared-lib';
+
 import {
 	Body,
 	ClassSerializerInterceptor,
@@ -14,7 +14,17 @@ import { Observable, map } from 'rxjs';
 import { AddMessageDto, MessageSerializer } from './dtos/message.dto';
 import { MessagesService } from './messages.service';
 import { PresetMessageSerializer } from './dtos/preset-message.dto';
+import { MessagePattern } from '@nestjs/microservices';
 
+//todo
+export interface ChatBot {
+	id: number;
+	internalId: string;
+	userId: number;
+	createdAt: Date;
+	updatedAt: Date;
+	messages: any[];
+}
 @UseInterceptors(ClassSerializerInterceptor)
 @Controller('messages')
 export class MessagesController {
@@ -37,7 +47,7 @@ export class MessagesController {
 		return messages;
 	}
 
-	@MessagePattern(CHAT_CREATE_EVENT)
+	@MessagePattern('CHAT_CREATE_EVENT')
 	async chatCreate(data: ChatBot) {
 		await this.messagesService.addMessageToChat({
 			chatId: data.id,
